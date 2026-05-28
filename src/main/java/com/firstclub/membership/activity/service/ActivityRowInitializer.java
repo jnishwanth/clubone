@@ -10,12 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
-/**
- * Creates the first activity row for a (user, period) in its OWN transaction
- * (REQUIRES_NEW). Isolating the insert means a unique-constraint violation from a
- * concurrent insert rolls back only this inner transaction — the caller's
- * transaction stays healthy and can simply retry the atomic increment.
- */
+/** Inserts the first activity row for a (user, period) in its OWN tx so a unique-constraint
+ *  race rolls back only the inner tx — the caller's tx stays clean and just retries the
+ *  increment. */
 @Component
 @RequiredArgsConstructor
 public class ActivityRowInitializer {
@@ -24,8 +21,8 @@ public class ActivityRowInitializer {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void insertFirstOrder(Long userId, String period, BigDecimal amount) {
-        // saveAndFlush forces the constraint check inside THIS transaction, so a
-        // losing race surfaces here as DataIntegrityViolationException (caller catches).
+        // saveAndFlush — force the unique-key check inside this tx, so a race surfaces as
+        // DataIntegrityViolationException for the caller to catch.
         repository.saveAndFlush(new CurrentPeriodActivity(userId, period, 1L, Money.of(amount), 0));
     }
 }

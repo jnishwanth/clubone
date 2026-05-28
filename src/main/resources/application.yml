@@ -35,6 +35,10 @@ membership:
   seed-on-startup: true
   # 02:00 on the 1st of every month
   evaluation-cron: "0 0 2 1 * *"
+  # 03:00 daily — downgrade subscriptions whose grace window lapsed unpaid
+  grace-sweep-cron: "0 0 3 * * *"
+  # 03:30 daily — flip ACTIVE subscriptions past their expiry date to EXPIRED
+  expiry-sweep-cron: "0 30 3 * * *"
   payment:
     # mock gateway: auto-approve charges so the happy path is demoable
     auto-approve: true

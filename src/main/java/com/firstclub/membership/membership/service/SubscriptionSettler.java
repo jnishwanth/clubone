@@ -26,11 +26,9 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-/**
- * Settles ONE subscription for one period in its own transaction, so a single
- * failure (or optimistic-lock retry) doesn't roll back the whole batch. Idempotent
- * via the settlement record's unique (subscription, period) constraint.
- */
+/** Settles ONE subscription for one period in its own tx, so a single failure (or @Version
+ *  retry) doesn't roll back the whole batch. Idempotent via the unique (subscription, period)
+ *  constraint on TierSettlement. */
 @Component
 @RequiredArgsConstructor
 public class SubscriptionSettler {

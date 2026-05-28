@@ -19,13 +19,9 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.util.List;
 
-/**
- * Bootstraps default business config from a bundled JSON file so a clean checkout
- * runs and demos immediately. Guarded: only seeds when the config tables are empty
- * (idempotent across restarts) and when {@code membership.seed-on-startup} is true.
- * Reuses the request DTOs as the on-disk shape, so seeding goes through the same
- * validation as the admin APIs.
- */
+/** Seeds default plans/tiers/users from a bundled JSON if the config tables are empty
+ *  and {@code membership.seed-on-startup} is true. Goes through the same DTOs as the
+ *  admin APIs, so it picks up the same validation. */
 @Slf4j
 @Component
 @RequiredArgsConstructor

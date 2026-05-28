@@ -14,12 +14,9 @@ import lombok.Setter;
 
 import java.time.Instant;
 
-/**
- * Audit + idempotency record for one subscription's settlement in one period. The
- * unique (subscription_id, period) constraint makes settlement idempotent: a
- * re-run or overlapping manual trigger can't double-charge. References other
- * aggregates by id (no JPA relationships) to keep the tiering slice decoupled.
- */
+/** One row per (subscription, period). The unique constraint is the idempotency key —
+ *  a re-run or overlapping manual trigger can't double-charge. Other aggregates referenced
+ *  by id only, no JPA relationships, so tiering stays decoupled. */
 @Entity
 @Table(name = "tier_settlements",
         uniqueConstraints = @UniqueConstraint(name = "uk_settlement_subscription_period",

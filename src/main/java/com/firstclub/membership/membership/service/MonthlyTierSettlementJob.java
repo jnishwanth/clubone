@@ -7,11 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.YearMonth;
 
-/**
- * Scheduled command side: the monthly job settles the just-completed month; daily
- * jobs downgrade lapsed grace windows and expire subscriptions past their period.
- * Reads return live data separately (CQRS-flavored: events accumulate, the schedule settles).
- */
+/** Scheduled triggers: monthly settlement, daily grace sweep, daily expiry sweep.
+ *  All three crons come from application.yml so ops can retune without code. */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -27,7 +24,7 @@ public class MonthlyTierSettlementJob {
         log.info("Monthly settlement for {} processed {} subscriptions.", lastMonth, count);
     }
 
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "${membership.grace-sweep-cron}")
     public void sweepGrace() {
         int count = orchestrator.sweepExpiredGrace();
         if (count > 0) {
@@ -35,7 +32,7 @@ public class MonthlyTierSettlementJob {
         }
     }
 
-    @Scheduled(cron = "0 30 3 * * *")
+    @Scheduled(cron = "${membership.expiry-sweep-cron}")
     public void expireSubscriptions() {
         int count = subscriptionService.expireDueSubscriptions();
         if (count > 0) {

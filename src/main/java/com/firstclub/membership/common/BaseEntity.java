@@ -12,13 +12,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
-/**
- * Shared identity, optimistic-lock version, and audit timestamps for all entities.
- * {@code @Version} gives every aggregate optimistic locking for free — concurrent
- * edits to the same row fail fast instead of silently overwriting.
- * No {@code equals}/{@code hashCode} here: identity-based equality on mutable JPA
- * entities is a known footgun, so we leave it to default reference equality.
- */
+/** Shared id + @Version + audit timestamps. No equals/hashCode here on purpose: id-based
+ *  equality on mutable JPA entities is a known footgun. */
 @Getter
 @MappedSuperclass
 public abstract class BaseEntity {

@@ -7,20 +7,23 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Admin: tune the global membership policy (currently the grace window in days). */
 @RestController
+@RequestMapping("/api/admin/policy")
 @RequiredArgsConstructor
-public class PolicyController {
+public class PolicyAdminController {
 
     private final PolicyService policyService;
 
-    @GetMapping("/api/admin/policy")
+    @GetMapping
     public PolicyDto get() {
         return policyService.get();
     }
 
-    @PutMapping("/api/admin/policy")
+    @PutMapping
     public PolicyDto update(@Valid @RequestBody PolicyDto dto) {
         return policyService.update(dto);
     }

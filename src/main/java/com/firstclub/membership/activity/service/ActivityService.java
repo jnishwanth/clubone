@@ -10,10 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
 
-/**
- * Public API of the activity slice: ingest order events into the read model, and
- * expose period metrics to the tiering engine.
- */
+/** Ingests order events into the read model; exposes period metrics to the tiering engine. */
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
@@ -21,19 +18,18 @@ public class ActivityService {
     private final CurrentPeriodActivityRepository repository;
     private final ActivityRowInitializer rowInitializer;
 
-    /**
-     * Apply an order: atomic increment first; if the row doesn't exist yet, create
-     * it (in a separate transaction) and increment again. This keeps concurrent
-     * orders for the same user correct without locking.
-     */
+    /** Atomic increment first; if row doesn't exist yet, insert in its own tx and increment
+     *  again. Keeps concurrent orders correct for the same user without locking. */
     @Transactional
     public void applyOrderFulfilled(OrderFulfilledEvent event) {
+        // Happy path: row exists, single atomic UPDATE.
         int updated = repository.incrementOrder(event.userId(), event.period(), event.amount());
         if (updated == 0) {
+            // First order for this period — let the row initializer try to create it.
             try {
                 rowInitializer.insertFirstOrder(event.userId(), event.period(), event.amount());
             } catch (DataIntegrityViolationException raceLost) {
-                // A concurrent insert created the row first — the increment now applies.
+                // Lost the race — another thread inserted first. Row exists now; increment applies.
                 repository.incrementOrder(event.userId(), event.period(), event.amount());
             }
         }

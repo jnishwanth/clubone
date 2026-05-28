@@ -13,10 +13,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Decides which tiers a user qualifies for "free" from their metrics/cohort, by
- * building an And/Or {@link TierSpecification} composite from each tier's criteria.
- */
+/** Builds an And/Or spec tree from a tier's criteria and asks whether the user qualifies
+ *  for it for free. */
 @Component
 @RequiredArgsConstructor
 public class TierEligibilityEvaluator {
@@ -37,10 +35,8 @@ public class TierEligibilityEvaluator {
         return combined.isSatisfiedBy(context);
     }
 
-    /**
-     * Highest-rank active tier the user earns for free. Tiers must be supplied in
-     * ascending rank order; the base tier (no criteria) guarantees a non-null result.
-     */
+    /** Highest-rank tier the user gets free. Tiers must be in ascending rank order;
+     *  base tier has no criteria so always qualifies => result is non-null. */
     public Tier freeEligibleTier(List<Tier> activeTiersAscending, EvaluationContext context) {
         Tier best = null;
         for (Tier tier : activeTiersAscending) {

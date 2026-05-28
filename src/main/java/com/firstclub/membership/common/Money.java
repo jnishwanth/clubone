@@ -4,11 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
 
-/**
- * Immutable money value object. Single-currency (INR) by design — encapsulates
- * scale/rounding so money is never passed around as a raw double/BigDecimal.
- * Persisted as a single numeric column via {@link MoneyConverter}.
- */
+/** Immutable, INR-only. Wraps BigDecimal so scale/rounding don't leak. Persisted via
+ *  {@link MoneyConverter}. */
 public record Money(BigDecimal amount) implements Comparable<Money> {
 
     public static final Money ZERO = Money.of(BigDecimal.ZERO);
@@ -34,7 +31,7 @@ public record Money(BigDecimal amount) implements Comparable<Money> {
         return new Money(amount.subtract(other.amount));
     }
 
-    /** Returns the given percentage of this amount (e.g. percentOf(10) = 10%). */
+    /** e.g. money.percentOf(10) == 10% of money. HALF_UP at scale 2 (paise). */
     public Money percentOf(BigDecimal percent) {
         return new Money(amount.multiply(percent).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
     }
@@ -43,7 +40,7 @@ public record Money(BigDecimal amount) implements Comparable<Money> {
         return amount.compareTo(other.amount) >= 0 ? this : other;
     }
 
-    /** Floors at zero — a fee difference can never be negative. */
+    /** Floors at zero. Used by the settlement policy so a "difference" can't go negative. */
     public Money atLeastZero() {
         return isNegative() ? ZERO : this;
     }

@@ -9,11 +9,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Records and transitions {@link TierSettlement}s. Pure bookkeeping over a
- * subscription id (no dependency on the membership slice). Idempotent inserts and
- * compare-and-set transitions keep it safe under retries and concurrent triggers.
- */
+/** Records and transitions {@link TierSettlement} rows. Talks to membership only via
+ *  subscriptionId (no JPA relationships). Idempotent inserts + CAS transitions so retries
+ *  and concurrent triggers stay safe. */
 @Service
 @RequiredArgsConstructor
 public class TierSettlementService {

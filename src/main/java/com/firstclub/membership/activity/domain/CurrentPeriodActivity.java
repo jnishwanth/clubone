@@ -10,12 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Per-user, per-period accumulation of order activity — a local read model fed by
- * order events. One row per (user, period); a new month is simply a new row, so
- * there is no destructive monthly reset (and no reset race). Counters are bumped
- * via an atomic SQL UPDATE (see repository), not read-modify-write.
- */
+/** One row per (user, period). New month = new row, so there's no destructive reset and no
+ *  reset race. Counters bumped via atomic SQL UPDATE in the repo, not read-modify-write. */
 @Entity
 @Table(name = "current_period_activity",
         uniqueConstraints = @UniqueConstraint(name = "uk_activity_user_period",

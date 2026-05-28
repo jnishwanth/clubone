@@ -5,11 +5,7 @@ import jakarta.persistence.Converter;
 
 import java.math.BigDecimal;
 
-/**
- * Maps {@link Money} to a single numeric DB column (autoApply: every Money field
- * is converted without per-field annotations). Keeps entity tables clean and
- * demonstrates the value-object ↔ column boundary.
- */
+/** autoApply so every Money field maps to a numeric column without per-field @Convert. */
 @Converter(autoApply = true)
 public class MoneyConverter implements AttributeConverter<Money, BigDecimal> {
 
