@@ -19,14 +19,15 @@ You only need a JDK 21. The Maven Wrapper fetches Maven itself.
 .\mvnw.cmd spring-boot:run
 ```
 
-The app starts on `http://localhost:8080` and seeds a default catalog (3 plans, 3 tiers, 3 users)
-on first boot. Then:
+The app listens on `http://localhost:8080`. On first boot the catalog seeds itself
+(3 plans, 3 tiers, 3 users) — look for `Seeded 3 plans, 3 tiers, 3 users.` in the log to
+confirm. The database is in-memory, so a restart wipes any subscriptions and order activity
+you create (the catalog re-seeds).
 
+- **Demo** — copy-pasteable curl walkthrough in the [Demo](#demo) section below.
 - **Swagger UI** — `http://localhost:8080/swagger-ui.html` to explore every endpoint.
-- **`requests.http`** — a scripted walk-through of the whole flow; run it top-to-bottom in
-  IntelliJ's HTTP client or the VS Code REST Client.
 - **H2 console** — `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:membership`,
-  user `sa`, empty password) if you want to look at the tables.
+  user `sa`, empty password) to look at the tables directly.
 
 ```bash
 ./mvnw test            # unit + integration + a concurrency test
@@ -59,20 +60,119 @@ Worked example with the seeded fees (Silver ₹0, Gold ₹199, Platinum ₹499 p
 > Miss it → drop to Gold (which you keep for free). Had you earned Platinum for free, you'd owe
 > nothing.
 
-## Trying the full story flow
+## Demo
 
-`requests.http` runs this end to end. In short:
+A walk-through of the headline flows with curl. `requests.http` mirrors the same steps if you
+prefer IntelliJ's HTTP Client or the VS Code REST Client extension. On Windows PowerShell,
+`curl` is an alias for `Invoke-WebRequest` — use `curl.exe`, Git Bash, or WSL for the examples
+below to work as written.
 
-1. `GET /api/plans`, `GET /api/tiers` — browse the catalog.
-2. Create a user, then `POST /api/users/{id}/subscription` with a plan + tier.
-3. `POST /api/orders/events` a few times — order activity accrues for the user.
-4. `GET /api/users/{id}/membership` — shows the tier, expiry, benefits, and live progress toward
-   the next tier.
-5. `POST /api/admin/tiering/run` — settles the month. With criteria met, the fee is waived.
-6. Upgrade to Platinum, settle a quiet month, and you'll see a fee invoiced; pay it via
-   `POST /api/payments/{id}/confirm` to keep the tier, or set the grace window to 0
-   (`PUT /api/admin/policy`) and `POST /api/admin/tiering/grace-sweep` to watch the downgrade.
-7. `PUT /api/admin/tiers/{id}` — change a tier's benefits or thresholds at runtime, no restart.
+### Browse the catalog
+
+```bash
+curl http://localhost:8080/api/plans
+curl http://localhost:8080/api/tiers
+```
+
+### Subscribe — happy path
+
+Subscribe the seeded Demo User (id `1`) to the Yearly plan (id `3`) at the Gold tier (id `2`).
+Charges the plan fee and Gold's joining fee.
+
+```bash
+curl -X POST http://localhost:8080/api/users/1/subscription \
+  -H 'Content-Type: application/json' \
+  -d '{"planId": 3, "tierId": 2}'
+```
+
+### Accrue activity
+
+Five fulfilled orders crosses Gold's *5 orders or ₹5,000 spend* threshold.
+
+```bash
+for i in 1 2 3 4 5; do
+  curl -X POST http://localhost:8080/api/orders/events \
+    -H 'Content-Type: application/json' \
+    -d '{"userId": 1, "amount": 1000}'
+done
+```
+
+### See progress and settle the month
+
+`progressToNextTier` updates live from those orders. Settling this month finds the criteria met,
+so the fee is **waived** and Gold is retained.
+
+```bash
+curl http://localhost:8080/api/users/1/membership
+curl -X POST http://localhost:8080/api/admin/tiering/run
+```
+
+### Apply benefits to a cart
+
+A ₹2,000 cart with ₹50 delivery → 5% off + delivery waived → payable `1900.00`.
+
+```bash
+curl -X POST http://localhost:8080/api/users/1/benefits/preview \
+  -H 'Content-Type: application/json' \
+  -d '{"cartTotal": 2000, "deliveryFee": 50}'
+```
+
+### Difference-fee path
+
+Upgrade to Platinum (pays its joining fee), then settle a fresh month with no activity — the
+difference is invoiced. Pay it within the grace window to retain Platinum.
+
+```bash
+curl -X POST http://localhost:8080/api/subscriptions/1/upgrade \
+  -H 'Content-Type: application/json' \
+  -d '{"targetTierId": 3}'
+
+curl -X POST 'http://localhost:8080/api/admin/tiering/run?period=2026-07'
+
+# The FEE_INVOICED row carries the paymentId.
+curl http://localhost:8080/api/subscriptions/1/settlements
+
+# Substitute the paymentId from above.
+curl -X POST http://localhost:8080/api/payments/<paymentId>/confirm
+```
+
+### Downgrade on lapsed grace
+
+Drop the grace window to 0 days (runtime config — no restart), settle another fresh month,
+and sweep: the unpaid Platinum drops to the free-eligible tier.
+
+```bash
+curl -X PUT http://localhost:8080/api/admin/policy \
+  -H 'Content-Type: application/json' \
+  -d '{"graceWindowDays": 0}'
+
+curl -X POST 'http://localhost:8080/api/admin/tiering/run?period=2026-08'
+curl -X POST http://localhost:8080/api/admin/tiering/grace-sweep
+curl http://localhost:8080/api/users/1/membership
+```
+
+### Reconfigure a tier live
+
+Retune Gold's thresholds and benefits without a redeploy.
+
+```bash
+curl -X PUT http://localhost:8080/api/admin/tiers/2 \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Gold", "rank": 1,
+    "joiningFee": 499, "monthlyFee": 199,
+    "active": true,
+    "criteriaCombinator": "ANY",
+    "benefits": [
+      {"type": "FREE_DELIVERY"},
+      {"type": "EXTRA_DISCOUNT_PERCENT", "value": 7}
+    ],
+    "criteria": [
+      {"type": "ORDER_COUNT", "operator": "GTE", "threshold": 3},
+      {"type": "COHORT", "stringValue": "VIP"}
+    ]
+  }'
+```
 
 ## Endpoints at a glance
 
@@ -89,6 +189,31 @@ Worked example with the seeded fees (Silver ₹0, Gold ₹199, Platinum ₹499 p
 | Lifecycle ops (admin) | `POST /api/admin/subscriptions/expire-due` |
 
 ## How the code is organised
+
+```mermaid
+flowchart TB
+    benefit
+    membership
+    tiering
+    activity
+    payment
+    user
+    catalog
+
+    tiering --> catalog
+    tiering --> activity
+    membership --> catalog
+    membership --> tiering
+    membership --> activity
+    membership --> user
+    membership --> payment
+    benefit --> catalog
+    benefit --> membership
+```
+
+Arrows point from a slice to what it depends on. Read it as: `catalog` and `user` are the
+foundations, `tiering` is a pure engine sitting on top of them, and `membership` is the
+orchestrator that ties everything together.
 
 Packages are split by domain, not by layer, under `com.firstclub.membership`:
 
