@@ -1,0 +1,25 @@
+# Build output
+target/
+
+# Logs
+*.log
+
+# H2 file-mode data (if enabled)
+data/
+
+# OS / editor
+.DS_Store
+
+# IDE project files
+.idea/
+
+# Claude Code local config
+.claude/
+
+# Assignment brief — the prompt, not part of the deliverable
+Membership Program Assignment.pdf
+
+# Private working notes — kept locally, excluded from the submitted repo
+CLAUDE.md
+
+# Maven wrapper note: .mvn/, mvnw, mvnw.cmd ARE committed (self-contained build)

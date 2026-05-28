@@ -1,0 +1,27 @@
+package com.firstclub.membership.catalog.web;
+
+import com.firstclub.membership.catalog.service.PolicyService;
+import com.firstclub.membership.catalog.web.dto.PolicyDto;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+public class PolicyController {
+
+    private final PolicyService policyService;
+
+    @GetMapping("/api/admin/policy")
+    public PolicyDto get() {
+        return policyService.get();
+    }
+
+    @PutMapping("/api/admin/policy")
+    public PolicyDto update(@Valid @RequestBody PolicyDto dto) {
+        return policyService.update(dto);
+    }
+}

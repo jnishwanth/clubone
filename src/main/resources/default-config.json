@@ -1,0 +1,62 @@
+{
+  "plans": [
+    { "name": "Monthly", "billingPeriod": "MONTHLY", "price": 199, "active": true },
+    { "name": "Quarterly", "billingPeriod": "QUARTERLY", "price": 499, "active": true },
+    { "name": "Yearly", "billingPeriod": "YEARLY", "price": 1499, "active": true }
+  ],
+  "tiers": [
+    {
+      "name": "Silver",
+      "rank": 0,
+      "joiningFee": 0,
+      "monthlyFee": 0,
+      "active": true,
+      "criteriaCombinator": "ALL",
+      "benefits": [
+        { "type": "EXCLUSIVE_DEALS", "description": "Access to member-only deals" }
+      ],
+      "criteria": []
+    },
+    {
+      "name": "Gold",
+      "rank": 1,
+      "joiningFee": 499,
+      "monthlyFee": 199,
+      "active": true,
+      "criteriaCombinator": "ANY",
+      "benefits": [
+        { "type": "FREE_DELIVERY", "description": "Free delivery on all orders" },
+        { "type": "EXTRA_DISCOUNT_PERCENT", "value": 5, "description": "5% extra off" },
+        { "type": "EXCLUSIVE_DEALS", "description": "Access to member-only deals" }
+      ],
+      "criteria": [
+        { "type": "ORDER_COUNT", "operator": "GTE", "threshold": 5 },
+        { "type": "MONTHLY_ORDER_VALUE", "operator": "GTE", "threshold": 5000 },
+        { "type": "COHORT", "stringValue": "VIP" }
+      ]
+    },
+    {
+      "name": "Platinum",
+      "rank": 2,
+      "joiningFee": 1499,
+      "monthlyFee": 499,
+      "active": true,
+      "criteriaCombinator": "ANY",
+      "benefits": [
+        { "type": "FREE_DELIVERY", "description": "Free priority delivery" },
+        { "type": "EXTRA_DISCOUNT_PERCENT", "value": 10, "description": "10% extra off" },
+        { "type": "EXCLUSIVE_DEALS", "description": "Early access to sales" },
+        { "type": "PRIORITY_SUPPORT", "description": "24x7 priority support" }
+      ],
+      "criteria": [
+        { "type": "ORDER_COUNT", "operator": "GTE", "threshold": 15 },
+        { "type": "MONTHLY_ORDER_VALUE", "operator": "GTE", "threshold": 20000 }
+      ]
+    }
+  ],
+  "users": [
+    { "name": "Demo User", "cohort": null },
+    { "name": "VIP User", "cohort": "VIP" },
+    { "name": "Frequent Shopper", "cohort": null }
+  ]
+}

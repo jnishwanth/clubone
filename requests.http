@@ -1,0 +1,149 @@
+### FirstClub Membership — demo script (IntelliJ HTTP Client / VS Code REST Client)
+### Run top-to-bottom against a running app (./mvnw spring-boot:run).
+### Plan/tier ids below match the default seed (Monthly=1, Quarterly=2, Yearly=3;
+### Silver=1, Gold=2, Platinum=3).
+
+@base = http://localhost:8080
+
+### 1. Browse plans
+GET {{base}}/api/plans
+
+### 2. Browse tiers (benefits + qualifying criteria)
+GET {{base}}/api/tiers
+
+### 3. Create a user
+POST {{base}}/api/users
+Content-Type: application/json
+
+{ "name": "Asha", "cohort": null }
+
+> {% client.global.set("userId", response.body.id); %}
+
+### 4. Subscribe to Yearly + Gold (charges base fee + Gold joining fee)
+POST {{base}}/api/users/{{userId}}/subscription
+Content-Type: application/json
+
+{ "planId": 3, "tierId": 2 }
+
+> {% client.global.set("subscriptionId", response.body.subscriptionId); %}
+
+### 5. View membership (note progressToNextTier = Platinum)
+GET {{base}}/api/users/{{userId}}/membership
+
+### 6. Five fulfilled orders this month (event-driven activity accrual)
+POST {{base}}/api/orders/events
+Content-Type: application/json
+
+{ "userId": {{userId}}, "amount": 1000 }
+
+### (repeat the order event a few times to cross Gold's ORDER_COUNT >= 5)
+POST {{base}}/api/orders/events
+Content-Type: application/json
+
+{ "userId": {{userId}}, "amount": 1000 }
+
+###
+POST {{base}}/api/orders/events
+Content-Type: application/json
+
+{ "userId": {{userId}}, "amount": 1000 }
+
+###
+POST {{base}}/api/orders/events
+Content-Type: application/json
+
+{ "userId": {{userId}}, "amount": 1000 }
+
+###
+POST {{base}}/api/orders/events
+Content-Type: application/json
+
+{ "userId": {{userId}}, "amount": 1000 }
+
+### 7. Membership again — progress now reflects the 5 orders / 5000 spend
+GET {{base}}/api/users/{{userId}}/membership
+
+### 8. Settle the current month — Gold criteria met, so the fee is WAIVED (tier kept free)
+POST {{base}}/api/admin/tiering/run
+
+### 9. Active benefits for the user
+GET {{base}}/api/users/{{userId}}/benefits
+
+### 10. Preview benefits on a cart (free delivery + 5% off applied)
+POST {{base}}/api/users/{{userId}}/benefits/preview
+Content-Type: application/json
+
+{ "cartTotal": 2000, "deliveryFee": 50 }
+
+### ----- Difference-fee path -----
+
+### 11. Upgrade to Platinum (pay joining fee)
+POST {{base}}/api/subscriptions/{{subscriptionId}}/upgrade
+Content-Type: application/json
+
+{ "targetTierId": 3 }
+
+### 12. Settle a fresh month with no activity — owes the Platinum-minus-free difference
+POST {{base}}/api/admin/tiering/run?period=2026-07
+
+### 13. Find the outstanding invoice (captures paymentId of the FEE_INVOICED settlement)
+GET {{base}}/api/subscriptions/{{subscriptionId}}/settlements
+
+> {%
+    for (let s of response.body) {
+        if (s.status === "FEE_INVOICED") { client.global.set("paymentId", s.paymentId); }
+    }
+%}
+
+### 14. Pay the fee within the grace window → Platinum retained
+POST {{base}}/api/payments/{{paymentId}}/confirm
+
+### 15. Membership stays Platinum
+GET {{base}}/api/users/{{userId}}/membership
+
+### ----- Grace-expiry downgrade path -----
+
+### 16. Set grace window to 0 days (runtime config change, no restart)
+PUT {{base}}/api/admin/policy
+Content-Type: application/json
+
+{ "graceWindowDays": 0 }
+
+### 17. Settle another fresh month → fee invoiced with an already-passed deadline
+POST {{base}}/api/admin/tiering/run?period=2026-08
+
+### 18. Sweep expired grace → unpaid Platinum settles down to the free-eligible tier
+POST {{base}}/api/admin/tiering/grace-sweep
+
+### 19. Membership now shows the downgraded tier
+GET {{base}}/api/users/{{userId}}/membership
+
+### ----- Runtime configurability demo -----
+
+### 20. Retune Gold's order-count threshold live (admin CRUD, no redeploy)
+PUT {{base}}/api/admin/tiers/2
+Content-Type: application/json
+
+{
+  "name": "Gold",
+  "rank": 1,
+  "joiningFee": 499,
+  "monthlyFee": 199,
+  "active": true,
+  "criteriaCombinator": "ANY",
+  "benefits": [
+    { "type": "FREE_DELIVERY", "description": "Free delivery on all orders" },
+    { "type": "EXTRA_DISCOUNT_PERCENT", "value": 7, "description": "7% extra off" }
+  ],
+  "criteria": [
+    { "type": "ORDER_COUNT", "operator": "GTE", "threshold": 3 },
+    { "type": "COHORT", "stringValue": "VIP" }
+  ]
+}
+
+### ----- Subscription expiry -----
+
+### 21. Expire lapsed subscriptions (daily job also does this automatically).
+### API-created subscriptions always expire in the future, so to see a non-zero result
+### first backdate a row's expiry_date in the H2 console (/h2-console), then run this.
+POST {{base}}/api/admin/subscriptions/expire-due
