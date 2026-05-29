@@ -4,10 +4,8 @@ import com.firstclub.membership.catalog.domain.CriteriaCombinator;
 
 import java.util.List;
 
-/**
- * Read-time projection of a user's progress toward the next tier. Computed live
- * from current activity; never mutates state (CQRS query side).
- */
+/** Read view of progress to the next tier. Computed live from current activity; doesn't
+ *  mutate state. */
 public record TierProgressView(
         boolean atTopTier,
         String nextTierName,

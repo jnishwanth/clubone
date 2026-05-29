@@ -17,11 +17,8 @@ import org.hibernate.annotations.BatchSize;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A membership tier (Silver/Gold/Platinum...). Aggregate root that owns its
- * benefits and qualifying criteria. {@code rank} orders tiers (0 = base, free);
- * the difference-pricing settlement compares ranks and monthly fees.
- */
+/** A membership tier. Owns its benefits and qualifying criteria via cascade. rank orders
+ *  tiers (0 = base / free), and difference pricing compares ranks + monthly fees. */
 @Entity
 @Table(name = "tiers")
 @Getter

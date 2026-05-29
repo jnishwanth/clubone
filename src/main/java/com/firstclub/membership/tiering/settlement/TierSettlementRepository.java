@@ -21,11 +21,8 @@ public interface TierSettlementRepository extends JpaRepository<TierSettlement, 
 
     List<TierSettlement> findBySubscriptionIdOrderByPeriodDesc(Long subscriptionId);
 
-    /**
-     * Compare-and-set: only transitions a settlement that is still FEE_INVOICED.
-     * Whoever wins (payment confirm vs grace-expiry sweep), the loser updates 0 rows
-     * and no-ops — atomic at the row level, no explicit lock.
-     */
+    /** CAS: only flips a settlement still at FEE_INVOICED. Payment-confirm vs grace-sweep,
+     *  the loser updates 0 rows and no-ops. Atomic at the row level, no explicit lock. */
     @Modifying
     @Query("update TierSettlement s set s.status = :target "
             + "where s.id = :id and s.status = com.firstclub.membership.tiering.settlement.SettlementStatus.FEE_INVOICED")

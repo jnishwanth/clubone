@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Computes "progress toward the next tier" on read, from the current period's
- * activity. Pure projection — no persistence, no state change.
- */
+/** Computes "progress to next tier" on read. Pure projection, no state change. */
 @Service
 @RequiredArgsConstructor
 public class TierProgressService {

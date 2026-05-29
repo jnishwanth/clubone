@@ -12,15 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Owns the payment lifecycle. {@code chargeNow} settles immediately (subscribe /
- * joining fees); {@code createInvoice} records an unpaid fee the user confirms
- * later (maintenance fee within the grace window).
- *
- * <p>Note: the mock gateway is in-process, so charging inside the transaction is
- * fine here. With a real (slow, remote) gateway you would persist intent, commit,
- * then charge — never hold a DB transaction open across the network call.
- */
+/** Owns the payment lifecycle. {@code chargeNow} settles immediately (subscribe/joining);
+ *  {@code createInvoice} records an unpaid fee the user confirms later. Mock gateway is
+ *  in-process so charging inside the tx is fine here; with a real gateway you'd persist
+ *  intent, commit, then charge. */
 @Service
 @RequiredArgsConstructor
 public class PaymentService {

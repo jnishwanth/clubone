@@ -3,11 +3,8 @@ package com.firstclub.membership.membership.domain;
 import com.firstclub.membership.catalog.domain.Tier;
 import com.firstclub.membership.common.BusinessRuleException;
 
-/**
- * Guards valid tier transitions. We model tier status with an enum + these explicit
- * guards rather than a full State pattern: the transitions are simple rank checks,
- * so a class-per-state would be over-engineering (a deliberate "why-not").
- */
+/** Static guards for tier-change validity. Enum + checks; no class-per-state, the rules
+ *  are simple rank comparisons. */
 public final class SubscriptionTierTransitions {
 
     private SubscriptionTierTransitions() {

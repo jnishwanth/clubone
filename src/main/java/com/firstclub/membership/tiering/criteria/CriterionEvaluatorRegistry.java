@@ -7,11 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * Registry/Factory: Spring injects all {@link CriterionEvaluator} beans and this
- * indexes them by {@link CriterionType}. Lookup is O(1) and adding a new evaluator
- * bean registers it automatically.
- */
+/** Spring picks up every CriterionEvaluator; we index by CriterionType for O(1) lookup. */
 @Component
 public class CriterionEvaluatorRegistry {
 

@@ -15,10 +15,8 @@ import java.time.Instant;
 import java.time.YearMonth;
 import java.util.List;
 
-/**
- * Coordinates settlement across subscriptions (command side). Delegates per-item
- * work to {@link SubscriptionSettler} so each runs in its own transaction.
- */
+/** Coordinates settlement across subscriptions. Per-item work delegated to
+ *  {@link SubscriptionSettler} so each runs in its own tx. */
 @Service
 @RequiredArgsConstructor
 public class TierSettlementOrchestrator {

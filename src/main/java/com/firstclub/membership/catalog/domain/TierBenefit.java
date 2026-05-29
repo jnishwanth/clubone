@@ -14,11 +14,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-/**
- * A benefit granted by a tier, with a per-tier value (e.g. Gold = 5% off,
- * Platinum = 10%). Value lives on the assignment, not the benefit type, so the
- * same perk can differ across tiers.
- */
+/** A benefit attached to a tier, with a per-tier value (e.g. Gold 5%, Platinum 10%).
+ *  Value sits on the row, not the BenefitType, so the same perk can differ across tiers. */
 @Entity
 @Table(name = "tier_benefits")
 @Getter

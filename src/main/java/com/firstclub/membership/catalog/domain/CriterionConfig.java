@@ -14,11 +14,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-/**
- * One configurable qualifying condition for a tier (data-driven threshold).
- * {@code type} selects the evaluator strategy; numeric types use
- * {@code operator}+{@code threshold}, COHORT uses {@code stringValue}.
- */
+/** One qualifying condition for a tier. {@code type} picks the evaluator strategy;
+ *  numeric criteria use operator+threshold, COHORT uses stringValue. */
 @Entity
 @Table(name = "criterion_configs")
 @Getter

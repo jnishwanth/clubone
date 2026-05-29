@@ -8,10 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Global, runtime-tunable membership policy (Bucket A). Single-row config so the
- * grace window can change live via the admin API without a redeploy.
- */
+/** Single-row global policy (currently just the grace window). Editable live via the
+ *  admin API, no redeploy. */
 @Entity
 @Table(name = "membership_policy")
 @Getter

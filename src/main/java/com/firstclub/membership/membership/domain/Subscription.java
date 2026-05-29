@@ -13,12 +13,8 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-/**
- * A user's membership: a plan + the tier currently held. {@code @Version} (from
- * BaseEntity) gives optimistic locking so a concurrent upgrade and a settlement
- * run can't silently clobber each other. References plan/tier by id to keep slices
- * decoupled.
- */
+/** A user's membership = plan + held tier. References plan/tier by id (no JPA relationships)
+ *  to keep slices decoupled. @Version inherited from BaseEntity gives optimistic locking. */
 @Entity
 @Table(name = "subscriptions",
         indexes = @Index(name = "idx_subscription_status_expiry", columnList = "status, expiry_date"))

@@ -13,12 +13,8 @@ public interface CurrentPeriodActivityRepository extends JpaRepository<CurrentPe
 
     Optional<CurrentPeriodActivity> findByUserIdAndPeriod(Long userId, String period);
 
-    /**
-     * Atomic increment of one user's period counters. A pure increment needs no
-     * prior read, so a single SQL UPDATE eliminates the lost-update race with zero
-     * retries — preferred over optimistic locking (retry churn) or pessimistic
-     * locks (needless serialization). Returns rows affected (0 = row not yet there).
-     */
+    /** Atomic increment of the period's counters. Single SQL UPDATE so there's no read step
+     *  for concurrent orders to race on. Returns rows affected (0 if the row's not there). */
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE current_period_activity "
             + "SET order_count = order_count + 1, order_value = order_value + :amount "

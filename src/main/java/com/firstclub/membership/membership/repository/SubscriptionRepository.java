@@ -20,12 +20,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     List<Subscription> findByStatus(SubscriptionStatus status);
 
-    /**
-     * Set-based expiry: flip every lapsed ACTIVE subscription to EXPIRED in one
-     * statement. The {@code status = ACTIVE} guard makes it idempotent and avoids
-     * racing a concurrent cancel. Bulk updates bypass dirty-checking, so updatedAt
-     * is set explicitly. Returns the number expired.
-     */
+    /** Bulk-expire every lapsed ACTIVE subscription in one UPDATE. status=ACTIVE guard makes
+     *  it idempotent and dodges a racing cancel. updatedAt set explicitly since bulk updates
+     *  bypass @UpdateTimestamp. */
     @Modifying
     @Query("update Subscription s "
             + "set s.status = com.firstclub.membership.membership.domain.SubscriptionStatus.EXPIRED, "
