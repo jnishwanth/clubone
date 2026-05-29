@@ -5,6 +5,21 @@ A backend for a subscription membership program with tiers. Members subscribe to
 configurable benefits and are kept either by paying a fee or by meeting activity criteria — the
 same way an Indian credit card waives its annual fee when you hit a spend target.
 
+*I built this project in collaboration with Claude Code. I worked through the use case and the
+design decisions myself, with a focus on making the architecture modular, configurable, and
+extensible without adding complexity that didn't earn its place.*
+
+| Section | What's in it |
+|---|---|
+| [Running it](#running-it) | JDK 21 + the mvnw commands; where to poke |
+| [How the model works](#how-the-model-works) | Plans vs tiers; the fee-waiver mechanic with a worked example |
+| [Demo](#demo) | Curl walkthrough of the main flows |
+| [Endpoints at a glance](#endpoints-at-a-glance) | One row per area with the relevant paths |
+| [How the code is organised](#how-the-code-is-organised) | Mermaid slice diagram + per-slice descriptions |
+| [Design choices made](#design-choices-made) | The four decisions that shape the codebase |
+| [Tests](#tests) | What the suite covers |
+| [Assumptions and scope](#assumptions-and-scope) | Stated simplifications |
+
 Stack: Java 21, Spring Boot 3.3, Spring Data JPA, in-memory H2. No external services to set up.
 
 ## Running it
